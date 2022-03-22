@@ -7,25 +7,38 @@ const io = require("socket.io")(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  io.to(socket.id).emit("mysocketid", { socketId: socket.id });
-  socket.on("userName", (name) => {
-    io.emit("userName", name);
+io.on("connection", socket => {
+  console.log(`User Connected : ${socket.id}`);
+  socket.on("enterChatroom", ({ userName, room }) => {
+    socket.join(room);
+    io.emit("userName", userName);
+    console.log(`${userName}님이 ${room}에 입장하셨습니다.`);
   });
 
-  socket.on("enterChatroom", (userName) => {
-    socket.broadcast.emit("reciveChat", userName);
+  socket.on("sendMessage", data => {
+    socket.to(data.room).emit("receive_message", data);
   });
+  socket.on("disconnect", () => {
+    console.log("user disconnected", socket.id);
+  });
+  // io.to(socket.id).emit("mysocketid", { socketId: socket.id });
+  // socket.on("userName", (name) => {
+  //   io.emit("userName", name);
+  // });
 
-  socket.on("sendChat", (data) => {
-    console.log(`${socket.id}: ${data}`);
-    io.emit("message", { id: socket.id, message: data });
-  });
+  // socket.on("enterChatroom", (userName) => {
+  //   socket.broadcast.emit("reciveChat", userName);
+  // });
 
-  socket.on("leaveChatRoom", (data) => {
-    console.log("leave chatroom", data);
-    socket.broadcast.emit("receiveChat");
-  });
+  // socket.on("sendChat", (data) => {
+  //   console.log(`${socket.id}: ${data}`);
+  //   io.emit("message", { id: socket.id, message: data });
+  // });
+
+  // socket.on("leaveChatRoom", (data) => {
+  //   console.log("leave chatroom", data);
+  //   socket.broadcast.emit("receiveChat");
+  // });
   // socket.broadcast.emit("message", "A user has join the chat");
 
   // // disconnects

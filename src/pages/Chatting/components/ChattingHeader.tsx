@@ -6,17 +6,18 @@ const socket = io("http://localhost:4000");
 
 const ChattingHeader: React.FC = () => {
   const [userName, setUserName] = useState("");
+  
   const handleUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(e.currentTarget.value);
   };
-  const EnterChatting = (e: React.FormEvent) => {
+  const EnterRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    socket.emit("enterChatroom", userName);
+    socket.emit("enterChatroom", {userName, room:"random"});
     setUserName("");
   };
   return (
     <Container>
-      <FormWrapper onSubmit={EnterChatting}>
+      <FormWrapper onSubmit={EnterRoom}>
         <input
           type="text"
           placeholder="이름을 입력해주세요"

@@ -12,39 +12,39 @@ export interface Chat {
 }
 
 const ChattingForm: React.FC = () => {
-  const [state, setState] = useState<Chat>({ id: "", message: "" });
+  const [message, setMessage] = useState("");
   const [chat, setChat] = useState<Chat[]>([]);
   const [yourId, setYourId] = useState<string>("");
   useEffect(() => {
-    socket.on("message", (state) => {
-      const copy = { ...state };
-      setChat([...chat, copy]);
-    });
-  });
+    socket.on("userName",(data)=>{
+      setYourId(data)
+    })
+  },[yourId]);
 
-  useEffect(() => {
-    socket.on("reciveChat", (name) => {
-      console.log(name);
-      setYourId(name);
-    });
-    socket.on("mysocketid", (data) => {
-      console.log(data);
-    });
-  }, []);
+  useEffect(()=>{
+    socket.on("receive_message",(data)=>{
+      console.log(data)
+      setChat(prev=>[...prev, data])
+    })
+  },[socket])
+  console.log(chat)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { message, id } = state;
+    const messageData = {
+      room : "random",
+      author : yourId,
+      message,
+      time: new Date(Date.now()).getHours() + ":" +  new Date(Date.now()).getMinutes()
+    }
 
-    socket.emit("sendChat", message, id);
-    setState({ ...state, message: "" });
-    // localStorage.setItem("id", state.name);
+    await socket.emit("sendMessage",messageData);
+    setMessage('')
   };
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setState({ ...state, message: e.currentTarget.value });
+    setMessage(e.currentTarget.value);
   };
-  console.log(chat);
   return (
     <>
       {yourId && <div>{yourId}님이 입장하셨습니다.</div>}
@@ -57,7 +57,7 @@ const ChattingForm: React.FC = () => {
             placeholder="write"
             onChange={(e) => handleChangeInput(e)}
             name="message"
-            value={state.message}
+            value={message}
           />
           <button>send</button>
         </Form>
