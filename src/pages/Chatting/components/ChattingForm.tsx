@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import io from "socket.io-client";
+import { Socket } from "socket.io-client";
 import styled from "styled-components";
+import { ClientToServerEvents, ServerToClientEvents } from "../../../@types/soket";
 import ChattingList from "./ChattingList";
 
-const socket = io("http://localhost:4000");
 
 export interface Chat {
   id: string;
@@ -11,18 +11,22 @@ export interface Chat {
   name?: string;
 }
 
-const ChattingForm: React.FC = () => {
+interface Props {
+  socket :  Socket<ServerToClientEvents, ClientToServerEvents>
+}
+
+const ChattingForm: React.FC<Props> = ({socket}) => {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState<Chat[]>([]);
   const [yourId, setYourId] = useState<string>("");
   useEffect(() => {
-    socket.on("userName",(data)=>{
+    socket.on("userName",(data:any)=>{
       setYourId(data)
     })
   },[yourId]);
 
   useEffect(()=>{
-    socket.on("receive_message",(data)=>{
+    socket.on("receive_message",(data:any)=>{
       console.log(data)
       setChat(prev=>[...prev, data])
     })

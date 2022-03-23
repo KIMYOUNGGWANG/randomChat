@@ -1,3 +1,23 @@
+
+interface ServerToClientEvents {
+  noArg: () => void;
+  basicEmit: (a: number, b: string, c: Buffer) => void;
+  withAck: (d: string, callback: (e: number) => void) => void;
+}
+
+interface ClientToServerEvents {
+  hello: () => void;
+}
+
+interface InterServerEvents {
+  ping: () => void;
+}
+
+interface SocketData {
+  name: string;
+  age: number;
+}
+
 const app = require("express")();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server, {
@@ -7,15 +27,15 @@ const io = require("socket.io")(server, {
   },
 });
 
-io.on("connection", socket => {
+io.on("connection", (socket:any) => {
   console.log(`User Connected : ${socket.id}`);
-  socket.on("enterChatroom", ({ userName, room }) => {
+  socket.on("enterChatroom", (userName:string ,room:string) => {
     socket.join(room);
     io.emit("userName", userName);
     console.log(`${userName}님이 ${room}에 입장하셨습니다.`);
   });
 
-  socket.on("sendMessage", data => {
+  socket.on("sendMessage", ({data}:any) => {
     socket.to(data.room).emit("receive_message", data);
   });
   socket.on("disconnect", () => {

@@ -1,15 +1,19 @@
 import React from "react";
 import styled from "styled-components";
 import { ChattingHeader } from "./components";
+import {io,  Socket } from "socket.io-client";
+
 import ChattingForm from "./components/ChattingForm";
-import ChattingList from "./components/ChattingList";
+import { ClientToServerEvents, ServerToClientEvents } from "../../@types/soket";
+
+const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io("http://localhost:4000");
 
 const Chatting: React.FC = () => {
   return (
     <Container>
       <Wrapper>
-        <ChattingHeader />
-        <ChattingForm />
+        <ChattingHeader socket={socket}/>
+        <ChattingForm socket={socket}/>
       </Wrapper>
     </Container>
   );

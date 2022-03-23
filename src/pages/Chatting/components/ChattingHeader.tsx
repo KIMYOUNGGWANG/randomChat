@@ -1,18 +1,20 @@
 import React, { useState } from "react";
-import { io } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import styled from "styled-components";
+import { ClientToServerEvents, ServerToClientEvents } from "../../../@types/soket";
 
-const socket = io("http://localhost:4000");
-
-const ChattingHeader: React.FC = () => {
+interface Props {
+  socket :  Socket<ServerToClientEvents, ClientToServerEvents>
+}
+const ChattingHeader: React.FC<Props> = ({socket}) => {
   const [userName, setUserName] = useState("");
-  
+  const room = "random"
   const handleUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(e.currentTarget.value);
   };
   const EnterRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    socket.emit("enterChatroom", {userName, room:"random"});
+    socket.emit("enterChatroom", {userName, room});
     setUserName("");
   };
   return (
