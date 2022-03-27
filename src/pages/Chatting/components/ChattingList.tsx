@@ -4,9 +4,9 @@ import { Chat } from "./ChattingForm";
 
 interface ChatProps {
   chat: Chat[];
-  yourId?: string;
+  yourId:string;
 }
-const ChattingList = ({ chat, yourId }: ChatProps) => {
+const ChattingList = ({ chat,yourId }: ChatProps) => {
   const renderChat = () => {
     return (
       <Container>
@@ -14,9 +14,10 @@ const ChattingList = ({ chat, yourId }: ChatProps) => {
           return (
             <ChattingListWrapper key={idx}>
               <MessageBox>
-                <div className="myMessage">
-                  <p className="userName">{yourId}</p>
-                  <p className="message">{el.message}</p>
+                <div style={{display:'flex',flexDirection:"column", alignItems:`${el.author === yourId? "flex-end": "flex-start"}`}}>
+                  <p className={`${el.author === yourId ? "me" : "other"}` }>{el.author}</p>
+                  <p className={el.author === yourId ? "message" : "myMessage"} >{el.message}</p>
+                  <span className="time">{el.time}</span>
                 </div>
               </MessageBox>
             </ChattingListWrapper>
@@ -34,37 +35,62 @@ const Container = styled.div`
   width: 100%;
   height: 90%;
   overflow: scroll;
+  background-color: #9bbbd4;
+  ::-webkit-scrollbar{
+    display: none;
+  }
 `;
 
 const ChattingListWrapper = styled.section`
   padding: 0 10px;
   box-sizing: border-box;
+    
 `;
 
 const MessageBox = styled.div`
   min-height: 40px;
   margin: 5px 0;
   .userName {
-    margin: 0 0 5px 0;
+    padding: 0 0 5px 0;
+    margin: 0;
     font-size: 14px;
+    position: relative;
+  background-color: #9bbbd4;
+  }
+  .me {
+    text-align: end;
+    margin: 0;
+  }
+  .other {
+    margin:0;
   }
   .message {
     margin: 0;
     font-size: 18px;
-    color: white;
-    width: 100%;
+    color: black;
     display: flex;
     align-items: center;
     padding: 10px;
     box-sizing: border-box;
-    background-color: rgb(240, 119, 59);
     min-height: 40px;
     border-radius: 10px;
+  background-color: #9bbbd4;
+    
   }
   .myMessage {
-    text-align: end;
+    text-align: start;
+    background-color:#ffffff;
+    border-radius: 10px;
+    padding: 10px;
+
+  }
     .message {
       justify-content: end;
+      background-color:#fef01b;
     }
+
+  .time{
+    font-size: 10px;
+    color:#999999;
   }
 `;

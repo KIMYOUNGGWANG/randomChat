@@ -6,9 +6,10 @@ import ChattingList from "./ChattingList";
 
 
 export interface Chat {
-  id: string;
-  message: string;
-  name?: string;
+  room : string;
+  author :string;
+  message:string;
+  time: string;
 }
 
 interface Props {
@@ -23,37 +24,40 @@ const ChattingForm: React.FC<Props> = ({socket}) => {
     socket.on("userName",(data:any)=>{
       setYourId(data)
     })
-  },[yourId]);
+  },[yourId,socket]);
 
   useEffect(()=>{
     socket.on("receive_message",(data:any)=>{
-      console.log(data)
       setChat(prev=>[...prev, data])
     })
   },[socket])
-  console.log(chat)
-
+  const renderTime = () => {
+    const time = new Date(Date.now()).getMinutes()<10? `${new Date(Date.now()).getHours()}:0${new Date(Date.now()).getMinutes()} `:`${new Date(Date.now()).getHours()} : ${new Date(Date.now()).getMinutes()}`
+    return time;
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const messageData = {
       room : "random",
       author : yourId,
       message,
-      time: new Date(Date.now()).getHours() + ":" +  new Date(Date.now()).getMinutes()
+      time: renderTime()
     }
 
     await socket.emit("sendMessage",messageData);
     setMessage('')
+    setChat(prev=>[...prev, messageData])
+
   };
+  console.log(chat)
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.currentTarget.value);
   };
   return (
     <>
-      {yourId && <div>{yourId}님이 입장하셨습니다.</div>}
-
-      <ChattingList chat={chat} yourId={yourId} />
+      {yourId && <div style={{backgroundColor:"#9bbbd4"}}>{yourId}님이 입장하셨습니다.</div>}
+      <ChattingList chat={chat} yourId={yourId}/>
       <Container>
         <Form onSubmit={(e) => handleSubmit(e)}>
           <input
@@ -73,9 +77,9 @@ const ChattingForm: React.FC<Props> = ({socket}) => {
 export default ChattingForm;
 
 const Container = styled.div`
-  position: absolute;
   width: 100%;
   height: 30px;
+  position: sticky;
   bottom: 0;
   display: flex;
   align-items: center;

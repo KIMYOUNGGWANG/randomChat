@@ -1,42 +1,31 @@
+import app from "express";
+import http from "http";
+// const app = require("express")();
+import * as so from "socket.io";
+const server = http.createServer(app);
 
-interface ServerToClientEvents {
-  noArg: () => void;
-  basicEmit: (a: number, b: string, c: Buffer) => void;
-  withAck: (d: string, callback: (e: number) => void) => void;
-}
+const io = new so.Server(server, {cors:{
+  origin:"*",
+  credentials:true,
+}});
 
-interface ClientToServerEvents {
-  hello: () => void;
-}
-
-interface InterServerEvents {
-  ping: () => void;
-}
-
-interface SocketData {
-  name: string;
-  age: number;
-}
-
-const app = require("express")();
-const server = require("http").createServer(app);
-const io = require("socket.io")(server, {
-  cors: {
-    origin: "*",
-    credentials: true,
-  },
-});
-
-io.on("connection", (socket:any) => {
+// const io = require("socket.io")(server, {
+//   cors: {
+//     origin: "*",
+//     credentials: true,
+//   },
+// });
+io.on("connection", (socket: any) => {
   console.log(`User Connected : ${socket.id}`);
-  socket.on("enterChatroom", (userName:string ,room:string) => {
-    socket.join(room);
-    io.emit("userName", userName);
-    console.log(`${userName}님이 ${room}에 입장하셨습니다.`);
+  socket.on("enterChatroom", (data:{userName: string, room: string}) => {
+    socket.join(data?.room);
+    socket.emit("userName", data?.userName);
+    console.log(`${data.userName}님이 ${data.room}에 입장하셨습니다.`);
   });
 
-  socket.on("sendMessage", ({data}:any) => {
-    socket.to(data.room).emit("receive_message", data);
+  socket.on("sendMessage", ( data: { room:string, author:string, message:string, time:string}) => {
+    console.log(data)
+    socket.to(data?.room).emit("receive_message", data);
   });
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
