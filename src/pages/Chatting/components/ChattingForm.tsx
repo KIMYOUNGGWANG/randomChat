@@ -1,63 +1,105 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
-import { ClientToServerEvents, ServerToClientEvents } from "../../../@types/soket";
 import ChattingList from "./ChattingList";
 
-
 export interface Chat {
-  room : string;
-  author :string;
-  message:string;
+  room: string;
+  author: string;
+  message: string;
   time: string;
 }
 
 interface Props {
-  socket :  Socket<ServerToClientEvents, ClientToServerEvents>
+  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+  userName: string;
+  roomName: string;
 }
 
-const ChattingForm: React.FC<Props> = ({socket}) => {
-  const [message, setMessage] = useState("");
-  const [chat, setChat] = useState<Chat[]>([]);
-  const [yourId, setYourId] = useState<string>("");
-  useEffect(() => {
-    socket.on("userName",(data:any)=>{
-      setYourId(data)
-    })
-  },[yourId,socket]);
-
-  useEffect(()=>{
-    socket.on("receive_message",(data:any)=>{
-      setChat(prev=>[...prev, data])
-    })
-  },[socket])
-  const renderTime = () => {
-    const time = new Date(Date.now()).getMinutes()<10? `${new Date(Date.now()).getHours()}:0${new Date(Date.now()).getMinutes()} `:`${new Date(Date.now()).getHours()} : ${new Date(Date.now()).getMinutes()}`
-    return time;
-  }
-  const handleSubmit = async (e: React.FormEvent) => {
+const ChattingForm: React.FC<Props> = ({ socket, userName, roomName }) => {
+  const [currentChat, setCurrentChat] = useState("");
+  const [chatList, setChatList] = useState<Chat[]>([]);
+  const sendMessage = async (e: any) => {
     e.preventDefault();
-    const messageData = {
-      room : "random",
-      author : yourId,
-      message,
-      time: renderTime()
+    if (currentChat !== "") {
+      const messageData = {
+        room: roomName,
+        author: userName,
+        message: currentChat,
+        time: renderTime(),
+      };
+      await socket.emit("sendMessage", messageData);
+      setCurrentChat("");
+      setChatList((prev) => [...prev, messageData]);
     }
-
-    await socket.emit("sendMessage",messageData);
-    setMessage('')
-    setChat(prev=>[...prev, messageData])
-
   };
-  console.log(chat)
-
-  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.currentTarget.value);
+  const renderTime = () => {
+    const time = new Date(Date.now()).getMinutes() < 10 ? `${new Date(Date.now()).getHours()}:0${new Date(Date.now()).getMinutes()} ` : `${new Date(Date.now()).getHours()} : ${new Date(Date.now()).getMinutes()}`;
+    return time;
   };
+
+  const inputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentChat(e.target.value);
+  };
+
+  useEffect(() => {
+    socket.on("receive_message", (data) => {
+      console.log(data);
+      setChatList((chat) => [...chat, data]);
+    });
+  }, [socket]);
+  console.log(chatList);
+
+  // const [message, setMessage] = useState("");
+  // const [chat, setChat] = useState<Chat[]>([]);
+  // const [yourId, setYourId] = useState<string>("");
+  // useEffect(() => {
+  //   socket.on("userName", (data: any) => {
+  //     setYourId(data);
+  //   });
+  // }, [yourId, socket]);
+
+  // useEffect(() => {
+  //   socket.on("receive_message", (data: any) => {
+  //     setChat((prev) => [...prev, data]);
+  //   });
+  // }, [socket]);
+  // const renderTime = () => {
+  //   const time =
+  //     new Date(Date.now()).getMinutes() < 10
+  //       ? `${new Date(Date.now()).getHours()}:0${new Date(
+  //           Date.now()
+  //         ).getMinutes()} `
+  //       : `${new Date(Date.now()).getHours()} : ${new Date(
+  //           Date.now()
+  //         ).getMinutes()}`;
+  //   return time;
+  // };
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!yourId) {
+  //     alert("이름을 입력해주세요");
+  //     return;
+  //   }
+  //   const messageData = {
+  //     room: "random",
+  //     author: yourId,
+  //     message,
+  //     time: renderTime(),
+  //   };
+
+  //   await socket.emit("sendMessage", messageData);
+  //   setMessage("");
+  //   setChat((prev) => [...prev, messageData]);
+  // };
+
+  // const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setMessage(e.currentTarget.value);
+  // };
   return (
-    <>
-      {yourId && <div style={{backgroundColor:"#9bbbd4"}}>{yourId}님이 입장하셨습니다.</div>}
-      <ChattingList chat={chat} yourId={yourId}/>
+    <div style={{ position: "relative", height: "100%" }}>
+      {/* <ChattingList chat={chat} yourId={yourId} />
       <Container>
         <Form onSubmit={(e) => handleSubmit(e)}>
           <input
@@ -69,8 +111,15 @@ const ChattingForm: React.FC<Props> = ({socket}) => {
           />
           <button>send</button>
         </Form>
+      </Container> */}
+      <ChattingList chatList={chatList} userName={userName} />
+      <Container>
+        <Form onSubmit={sendMessage}>
+          <input type="text" placeholder="write" onChange={(e) => inputHandler(e)} name="message" value={currentChat} />
+          <button>send</button>
+        </Form>
       </Container>
-    </>
+    </div>
   );
 };
 

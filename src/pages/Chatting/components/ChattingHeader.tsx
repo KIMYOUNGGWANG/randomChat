@@ -1,31 +1,25 @@
 import React, { useState } from "react";
 import { Socket } from "socket.io-client";
 import styled from "styled-components";
-import { ClientToServerEvents, ServerToClientEvents } from "../../../@types/soket";
 
 interface Props {
-  socket :  Socket<ServerToClientEvents, ClientToServerEvents>
+  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 }
-const ChattingHeader: React.FC<Props> = ({socket}) => {
+const ChattingHeader: React.FC<Props> = ({ socket }) => {
   const [userName, setUserName] = useState("");
-  const room = "random"
+  const [room, setRoom] = useState("");
   const handleUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(e.currentTarget.value);
   };
   const EnterRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    socket.emit("enterChatroom", {userName, room});
+    // socket.emit("room", { room: userName, message: room });
     setUserName("");
   };
   return (
     <Container>
       <FormWrapper onSubmit={EnterRoom}>
-        <input
-          type="text"
-          placeholder="이름을 입력해주세요"
-          onChange={(e) => handleUserName(e)}
-          value={userName}
-        />
+        <input type="text" placeholder="이름을 입력해주세요" onChange={(e) => handleUserName(e)} value={userName} />
         <button>Join</button>
       </FormWrapper>
       <HeaderWrapper>
